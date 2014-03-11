@@ -10,57 +10,29 @@ class Company(models.Model):
 class Permissions(models.Model):
     account = models.ForeignKey(ContentType)
     user_id = models.PositiveIntegerField()
-    owner = generic.GenericForeignKey('account', 'user_id')              #must be relation with user model
+    owner = generic.GenericForeignKey('account', 'user_id')              
     company = models.OneToOneField(Company, related_name = 'property_of')
     ruledObject = generic.GenericForeignKey('content_type', 'object_id')
+    #TODO permission bits
 
     #return row owner
     def get_owner(self, row_id):
         return User.objects.filter(id=OwnerMixin.objects.filter(id=row_id).owner)
 
-    #this functions checks user roles
-    
-    #if is superuser
-    def is_root(self, user):
-        if user.is_superuser():
-            return True
-        else:
-            return False
-
-    #if user in company
-    def is_employee(self, user, row_id):
-        if user in PowerUsers.objects.filter(company = self.objects.filter(id=row_id)[0].company.companyName) + PlainUsers.objects.filter(company = self.objects.filter(id=row_id)[0].company.companyName):
-            return True
-        else:
-            return False
-
-    #if user is power user
-    def is_poweruser(self, user):
-        if user in PowerUsers.objects.all():
-            return True
-        else:
-            return False
-
-    #if user is row owner
-    def is_owner(self, user, row_id):
-        if user in self.get_owner(row_id):
-            return True
-        else:
-            return False
+    #TODO permission checks
 
 
 class PowerUsers(models.Model):
     powerUser = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    owner = generic.GenericForeignKey('powerUser', 'object_id')              #must be relation with user model
+    user = generic.GenericForeignKey('powerUser', 'object_id')              
     company = models.OneToOneField(Company, related_name = 'company_power_user')
 
-    #TODO: def save()
-    
     def save(self, *args, **kwargs):
         for elem in PlainUsers.objects.all():
-            print self.owner
-            print elem.owner
+            if self.owner == elem.owner:
+                elem.delete()
+        for elem in Admins.objects.all():
             if self.owner == elem.owner:
                 elem.delete()
         super(PowerUsers, self).save(*args, **kwargs)
@@ -69,14 +41,29 @@ class PowerUsers(models.Model):
 class PlainUsers(models.Model):
     plainUser = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    owner = generic.GenericForeignKey('plainUser', 'object_id')              #must be relation with user model
+    user = generic.GenericForeignKey('plainUser', 'object_id')              
     company = models.OneToOneField(Company, related_name = 'company_plain_user')
 
-    #TODO: def save()
     def save(self, *args, **kwargs):
         for elem in PowerUsers.objects.all():
-            print self.owner
-            print elem.owner
+            if self.owner == elem.owner:
+                elem.delete()
+        for elem in Admins.objects.all():
             if self.owner == elem.owner:
                 elem.delete()
         super(PlainUsers, self).save(*args, **kwargs)
+
+class Admins(models.Model):
+    plainUser = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    user = generic.GenericForeignKey('plainUser', 'object_id')              
+    company = models.OneToOneField(Company, related_name = 'company_plain_user')
+
+    def save(self, *args, **kwargs):
+        for elem in PlainUsers.objects.all():
+            if self.owner == elem.owner:
+                elem.delete()
+        for elem in Admins.objects.all():
+            if self.owner == elem.owner:
+                elem.delete()
+        super(PowerUsers, self).save(*args, **kwargs)
