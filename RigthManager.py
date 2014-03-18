@@ -2,8 +2,17 @@ from rightman.models import *
 
 #user - user object (can django.contrib.auth.User, or not)
 #obj - requested object
-def can_view(user, obj):
-    return True
+def can_view(user_acc, obj):
+    user_permissions = UserAccounts.objects.filter(user = user_acc)
+    if user_permissions.is_root():
+        return True
+    else:
+        return False
 
-def can_modify(user, obj):
-    return True
+
+def can_modify(user_acc, obj):
+    user_permissions = UserAccounts.objects.filter(user = user_acc)
+    if user_permissions.is_root():
+        return True
+    else:
+        return False

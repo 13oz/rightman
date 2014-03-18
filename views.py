@@ -8,9 +8,9 @@ from rightman import RightManager
 # Create your views here.
 class ListViewMixin(ListView):
     #self.model - моделька, которую мы будет показывать
-    #TODO возвращает фильтр для объектов,к которым есть доступ на ЧТЕНИЕ 
-    def get_queryset(self, request):
-        return HttpResponse('foo')
+    #TODO возвращает объекты, доступные для просмотра пользователю
+    def get(self, request):
+        return True
 
 class SingleObjectViewMixin(SingleObjectMixin):
     #self.model - моделька, которую мы будет показывать

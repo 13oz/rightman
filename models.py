@@ -38,8 +38,23 @@ class UserAccount(models.Model):
         else:
             return False
 
+    def is_user(self, acc_id):
+        if self.objects.filter(id=acc_id)[0].user_roles == __USER:
+            return True
+        else:
+            return False
+
     def employee_of(self, acc_id):
-        return True
+        return self.objects.filter(id=acc_id)[0].user_company
+
+    def save(self, *args, **kwargs):
+        for elem in UserAccount.objects.all():
+            if self.user == elem.user:
+                elem.delete()
+                super(UserAccount, self).save(*args, **kwargs)
+                raise RightManagerExceptions.MultipleUserPermissionException(self.user)
+            else:
+                super(UserAccount, self).save(*args, **kwargs)
 
 class Permissions(models.Model):
     #Groups: ANY, COMPANY, OWNER, POWER

@@ -19,3 +19,10 @@ class MultipleRelationWithSingleRemoteObjectException(Exception):
 
     def __str__(self):
         return  "Permission set for {} is overwritten".format(repr(self.remote_obj))
+
+class MultipleUserPermissionException(Exception):
+    def __init__(self, user):
+        self.user = user
+
+    def __str__(self):
+        return "Permissions for {} is overwritten".format(repr(self.user))
