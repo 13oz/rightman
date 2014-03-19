@@ -11,9 +11,9 @@ class Company(models.Model):
 
 class UserAccount(models.Model):
     #user roles
-    __ADMIN = "admin"
-    __POWER = "power user"
-    __USER = "user"
+    __ADMIN = "0"
+    __POWER = "1"
+    __USER = "2"
 
     user_roles  = (
         (__ADMIN, "site administrator account"),
@@ -47,31 +47,39 @@ class UserAccount(models.Model):
     def employee_of(self, acc_id):
         return self.objects.filter(id=acc_id)[0].user_company
 
-    def save(self, *args, **kwargs):
-        for elem in UserAccount.objects.all():
-            if self.user == elem.user:
-                elem.delete()
-                super(UserAccount, self).save(*args, **kwargs)
-                raise RightManagerExceptions.MultipleUserPermissionException(self.user)
-            else:
-                super(UserAccount, self).save(*args, **kwargs)
+    """def save(self, *args, **kwargs):
+                    for elem in UserAccount.objects.all():
+                        if self.user == elem.user:
+                            elem.delete()
+                            super(UserAccount, self).save(*args, **kwargs)
+                            raise RightManagerExceptions.MultipleUserPermissionException(self.user)
+                        else:
+                            super(UserAccount, self).save(*args, **kwargs)"""
 
 class Permissions(models.Model):
     #Groups: ANY, COMPANY, OWNER, POWER
     #Actions: READ, MODIFY
-    __ANY = "Any"
-    __COMPANY = "COMPANY"
-    __OWNER = "OWNER"
-    __POWER = "POWER"
+    __COMPANY = "1"
+    __OWNER = "2"
+    __POWER = "4"
+
+    __COMPANY_OWNER = "3"
+    __OWNER_POWER = "6"
+    __ANY = "7"
+    
 
     read_choise = (
         (__ANY, "Anyone can see this object"),
+        (__COMPANY_OWNER, "This object can be seen by owner and company employees"),
+        (__OWNER_POWER, "This object can be seen by owner and company admins"),
         (__COMPANY, "This object can be seen only by owner's company employees"),
         (__POWER, "This object can be seen only by company administrators"),
         (__OWNER, "This object can be seen only by it's owner"))
 
     modify_choise = (
         (__ANY, "Anyone can modify this object"),
+        (__COMPANY_OWNER, "This object can be midified by owner and company employees"),
+        (__OWNER_POWER, "This object can be midified by owner and company admins"),
         (__COMPANY, "This object can be modfied only be owner's company employees"),
         (__POWER, "This object can be modified only by company administrators"),
         (__OWNER, "This object can be modified only by it's owner"))
@@ -81,18 +89,8 @@ class Permissions(models.Model):
     owner = models.OneToOneField(UserAccount, related_name = 'owner')
     company = models.OneToOneField(Company, related_name = 'property_of')
     ruled_object = generic.GenericForeignKey('content_type', 'object_id')
-    read_permission = models.CharField(max_length = 2, choices = read_choise, default = COMPANY)
-    modify_permission = models.CharField(max_length = 2, choices = modify_choise, default = POWER)
-
-    #return row owner
-    def get_owner(self, row_id):
-        return self.objects.filter(id=row_id)[0].owner
-
-    def get_read_permission(self, row_id):
-        return self.objects.filter(id=row_id)[0].read_permission
-
-    def get_modify_permission(self, row_id):
-        return self.objects.filter(id=row_id)[0].modify_permission
+    read_permission = models.CharField(max_length = 1, choices = read_choise, default = __COMPANY)
+    modify_permission = models.CharField(max_length = 1, choices = modify_choise, default = __POWER)
 
     def save(self, *args, **kwargs):
         for elem in Permissions.objects.all():
