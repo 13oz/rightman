@@ -24,10 +24,10 @@ class UserAccount(models.Model):
     user_id = models.PositiveIntegerField()
     user = generic.GenericForeignKey('user_object', 'user_id')
     user_role = models.CharField(max_length = 1, choices = user_roles, default = __USER)
-    user_company = models.OneToOneField(Company, related_name = 'employee_of')
+    user_company = models.ForeignKey(Company, unique = False, related_name = 'employee_of')
 
-    def is_root(self, acc_id):
-        if self.objects.filter(id=acc_id)[0].user_roles == __ADMIN:
+    def is_root(self):
+        if self.user_role == "0":
             return True
         else:
             return False
@@ -84,19 +84,19 @@ class Permissions(models.Model):
         (__POWER, "This object can be modified only by company administrators"),
         (__OWNER, "This object can be modified only by it's owner"))
 
-    account = models.ForeignKey(ContentType)
-    user_id = models.PositiveIntegerField()
-    owner = models.OneToOneField(UserAccount, related_name = 'owner')
-    company = models.OneToOneField(Company, related_name = 'property_of')
-    ruled_object = generic.GenericForeignKey('content_type', 'object_id')
+    obj = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    ruled_object = generic.GenericForeignKey('obj', 'object_id')
+    owner = models.ForeignKey(UserAccount, related_name = 'owner')
+    company = models.ForeignKey(Company, related_name = 'property_of')
     read_permission = models.CharField(max_length = 1, choices = read_choise, default = __COMPANY)
     modify_permission = models.CharField(max_length = 1, choices = modify_choise, default = __POWER)
 
-    def save(self, *args, **kwargs):
-        for elem in Permissions.objects.all():
-            if self.ruled_object == elem.ruled_object:
-                elem.delete()
-                super(Permissions, self).save(*args, **kwargs)
-                raise RightManagerExceptions.MultipleRelationWithSingleRemoteObjectException(self.ruled_object)
-            else:
-                super(Permissions, self).save(*args, **kwargs)
+    """def save(self, *args, **kwargs):
+                    for elem in Permissions.objects.all():
+                        if self.ruled_object == elem.ruled_object:
+                            elem.delete()
+                            super(Permissions, self).save(*args, **kwargs)
+                            raise RightManagerExceptions.MultipleRelationWithSingleRemoteObjectException(self.ruled_object)
+                        else:
+                            super(Permissions, self).save(*args, **kwargs)"""
