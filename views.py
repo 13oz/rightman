@@ -32,9 +32,6 @@ class ListViewMixin(ListView):
         else:
             return [elem for elem in self.queryset if RigthManager.is_public(Permissions.objects.get(ruled_object=elem))]
 
-    def form_valid():
-        return True
-
 class SingleObjectViewMixin(SingleObjectMixin):
     #self.model - моделька, которую мы будет показывать
     #self.queryset
@@ -61,6 +58,3 @@ class SingleObjectViewMixin(SingleObjectMixin):
             return [elem for elem in self.queryset if RigthManager.can_view(UserAccount(user=self.request.user), Permissions.objects.get(ruled_object=elem))]
         else:
             return [elem for elem in self.queryset if RigthManager.is_public(Permissions.objects.get(ruled_object=elem))]
-
-    def form_valid():
-        return True
